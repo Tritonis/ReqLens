@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { ExtractionOptions, ExtractionResult } from './types';
+import { ExtractionOptions, ExtractionResult, ExtractedRequirement } from './types';
 
 let _client: Anthropic | null = null;
 function getClient(): Anthropic {
@@ -57,36 +57,22 @@ const EXTRACTION_TOOL: Anthropic.Tool = {
   },
 };
 
-export async function extractRequirements(
-  text: string,
-  options: ExtractionOptions,
-  documentName: string
+const CHUNK_SIZE = 40_000; // chars — ~10K tokens of input per chunk
+
+async function callClaude(
+  userContent: Anthropic.MessageParam['content']
 ): Promise<ExtractionResult> {
-  const typeFilter = [
-    options.functional && 'functional requirements',
-    options.nonFunctional && 'non-functional requirements',
-    options.constraints && 'constraints',
-  ].filter(Boolean).join(', ');
-
-  const userPrompt = `Document: "${documentName}"
-
-Extract the following from the document below: ${typeFilter}.
-
---- DOCUMENT START ---
-${text.slice(0, 80000)}
---- DOCUMENT END ---`;
-
-  const response = await getClient().messages.create({
+  const response = await getClient().messages.stream({
     model: 'claude-sonnet-4-6',
-    max_tokens: 16000,
+    max_tokens: 64000,
     system: SYSTEM_PROMPT,
     tools: [EXTRACTION_TOOL],
     tool_choice: { type: 'tool', name: 'extract_requirements' },
-    messages: [{ role: 'user', content: userPrompt }],
-  });
+    messages: [{ role: 'user', content: userContent }],
+  }).finalMessage();
 
   if (response.stop_reason === 'max_tokens') {
-    throw new Error('Document produced too many requirements to process in one pass. Try a shorter document or paste a specific section.');
+    throw new Error('A document section produced too many requirements. Try splitting the document into smaller parts.');
   }
 
   const toolBlock = response.content.find(b => b.type === 'tool_use');
@@ -100,4 +86,53 @@ ${text.slice(0, 80000)}
     confidence: Math.min(1, Math.max(0, r.confidence)),
   }));
   return result;
+}
+
+export async function extractRequirements(
+  text: string,
+  options: ExtractionOptions,
+  documentName: string,
+  pdfBuffer?: Buffer
+): Promise<ExtractionResult> {
+  const typeFilter = [
+    options.functional && 'functional requirements',
+    options.nonFunctional && 'non-functional requirements',
+    options.constraints && 'constraints',
+  ].filter(Boolean).join(', ');
+
+  // Scanned/image PDF — pass bytes directly, no chunking possible
+  if (!text.trim() && pdfBuffer) {
+    const content: Anthropic.MessageParam['content'] = [
+      {
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: pdfBuffer.toString('base64') },
+      } as Anthropic.Base64PDFSource & { type: 'document' },
+      { type: 'text', text: `Document: "${documentName}"\n\nExtract the following: ${typeFilter}.` },
+    ];
+    return callClaude(content);
+  }
+
+  // Text document small enough for a single call
+  if (text.length <= CHUNK_SIZE) {
+    const prompt = `Document: "${documentName}"\n\nExtract the following: ${typeFilter}.\n\n--- DOCUMENT START ---\n${text}\n--- DOCUMENT END ---`;
+    return callClaude(prompt);
+  }
+
+  // Large text document — process in sequential chunks and merge
+  const chunks: string[] = [];
+  for (let i = 0; i < text.length; i += CHUNK_SIZE) {
+    chunks.push(text.slice(i, i + CHUNK_SIZE));
+  }
+
+  const allRequirements: ExtractedRequirement[] = [];
+  let summary = '';
+
+  for (let i = 0; i < chunks.length; i++) {
+    const prompt = `Document: "${documentName}" (section ${i + 1} of ${chunks.length})\n\nExtract the following: ${typeFilter}.\n\n--- SECTION START ---\n${chunks[i]}\n--- SECTION END ---`;
+    const result = await callClaude(prompt);
+    allRequirements.push(...result.requirements);
+    if (i === 0) summary = result.summary;
+  }
+
+  return { requirements: allRequirements, summary };
 }

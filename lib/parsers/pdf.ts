@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse: (buffer: Buffer) => Promise<{ text: string }> = require('pdf-parse');
+const pdfParse: (buffer: Buffer) => Promise<{ text: string; numpages: number }> = require('pdf-parse');
 
 export async function parsePdf(buffer: Buffer): Promise<string> {
   const data = await pdfParse(buffer);
-  return data.text;
+  return data.text ?? '';
 }

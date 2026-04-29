@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
   catch { return NextResponse.json({ error: 'Invalid options JSON' }, { status: 400 }); }
 
   let rawText = '';
+  let pdfBuffer: Buffer | undefined;
   let documentName = 'Pasted text';
   let sourceType = 'paste';
   let storagePath: string | null = null;
@@ -30,6 +31,8 @@ export async function POST(req: NextRequest) {
     try { rawText = await parseFile(buffer, sourceType); }
     catch (err: any) { return NextResponse.json({ error: `Failed to parse file: ${err.message}` }, { status: 422 }); }
 
+    if (!rawText.trim() && sourceType === 'pdf') pdfBuffer = buffer;
+
     const uploadPath = `${user.id}/${Date.now()}-${file.name}`;
     const { error: se } = await supabase.storage.from('documents').upload(uploadPath, buffer);
     if (!se) storagePath = uploadPath;
@@ -39,17 +42,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No content provided' }, { status: 400 });
   }
 
-  if (!rawText.trim()) return NextResponse.json({ error: 'Document appears to be empty' }, { status: 422 });
+  if (!rawText.trim() && !pdfBuffer) {
+    return NextResponse.json({ error: 'Document appears to be empty' }, { status: 422 });
+  }
 
   const { data: doc, error: docError } = await supabase
     .from('documents')
-    .insert({ user_id: user.id, name: documentName, source_type: sourceType, storage_path: storagePath, raw_text: rawText, status: 'processing' })
+    .insert({ user_id: user.id, name: documentName, source_type: sourceType, storage_path: storagePath, raw_text: rawText || null, status: 'processing' })
     .select().single();
 
   if (docError) return NextResponse.json({ error: docError.message }, { status: 500 });
 
   try {
-    const result = await extractRequirements(rawText, options, documentName);
+    const result = await extractRequirements(rawText, options, documentName, pdfBuffer);
     const rows = result.requirements.map(r => ({
       document_id: doc.id, user_id: user.id,
       text: r.text, source_quote: r.source_quote, source_page: r.source_page,
