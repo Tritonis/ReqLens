@@ -25,8 +25,37 @@ Rules:
 - Do NOT invent requirements not supported by the text
 - Split compound requirements into separate items
 - Normalise passive voice and vague language into clear "shall" statements
-- Confidence < 0.7 means mark as ambiguous
-- Respond ONLY with valid JSON, no preamble, no markdown fences`;
+- Confidence < 0.7 means mark as ambiguous`;
+
+const EXTRACTION_TOOL: Anthropic.Tool = {
+  name: 'extract_requirements',
+  description: 'Extract and structure requirements from a document',
+  input_schema: {
+    type: 'object',
+    properties: {
+      requirements: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            text:             { type: 'string' },
+            source_quote:     { type: 'string' },
+            source_page:      { type: ['integer', 'null'] },
+            type:             { type: 'string', enum: ['functional', 'non-functional', 'constraint', 'ambiguous'] },
+            category:         { type: 'string' },
+            priority:         { type: 'string', enum: ['high', 'medium', 'low'] },
+            confidence:       { type: 'number' },
+            is_ambiguous:     { type: 'boolean' },
+            ambiguity_reason: { type: 'string' },
+          },
+          required: ['text', 'type', 'priority', 'confidence', 'is_ambiguous'],
+        },
+      },
+      summary: { type: 'string' },
+    },
+    required: ['requirements', 'summary'],
+  },
+};
 
 export async function extractRequirements(
   text: string,
@@ -43,33 +72,32 @@ export async function extractRequirements(
 
 Extract the following from the document below: ${typeFilter}.
 
-Return a JSON object with this exact shape:
-{
-  "requirements": [...],
-  "summary": "..."
-}
-
 --- DOCUMENT START ---
 ${text.slice(0, 80000)}
 --- DOCUMENT END ---`;
 
   const response = await getClient().messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8000,
+    max_tokens: 16000,
     system: SYSTEM_PROMPT,
+    tools: [EXTRACTION_TOOL],
+    tool_choice: { type: 'tool', name: 'extract_requirements' },
     messages: [{ role: 'user', content: userPrompt }],
   });
 
-  const raw = response.content[0].type === 'text' ? response.content[0].text : '';
-
-  try {
-    const parsed = JSON.parse(raw) as ExtractionResult;
-    parsed.requirements = parsed.requirements.map(r => ({
-      ...r,
-      confidence: Math.min(1, Math.max(0, r.confidence)),
-    }));
-    return parsed;
-  } catch {
-    throw new Error(`Failed to parse Claude response as JSON: ${raw.slice(0, 200)}`);
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('Document produced too many requirements to process in one pass. Try a shorter document or paste a specific section.');
   }
+
+  const toolBlock = response.content.find(b => b.type === 'tool_use');
+  if (!toolBlock || toolBlock.type !== 'tool_use') {
+    throw new Error('Claude did not return a tool_use response block');
+  }
+
+  const result = toolBlock.input as ExtractionResult;
+  result.requirements = result.requirements.map(r => ({
+    ...r,
+    confidence: Math.min(1, Math.max(0, r.confidence)),
+  }));
+  return result;
 }

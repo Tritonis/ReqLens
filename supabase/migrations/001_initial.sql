@@ -1,7 +1,5 @@
-create extension if not exists "uuid-ossp";
-
 create table documents (
-  id           uuid primary key default uuid_generate_v4(),
+  id           uuid primary key default gen_random_uuid(),
   user_id      uuid references auth.users(id) on delete cascade not null,
   name         text not null,
   source_type  text not null check (source_type in ('pdf','docx','txt','md','xlsx','paste')),
@@ -17,7 +15,7 @@ create table documents (
 );
 
 create table requirements (
-  id           uuid primary key default uuid_generate_v4(),
+  id           uuid primary key default gen_random_uuid(),
   document_id  uuid references documents(id) on delete cascade not null,
   user_id      uuid references auth.users(id) on delete cascade not null,
   req_id       text not null,
