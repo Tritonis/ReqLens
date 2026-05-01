@@ -1,14 +1,14 @@
 jest.mock('@anthropic-ai/sdk', () => {
-  const mockCreate = jest.fn();
-  const MockAnthropic = jest.fn().mockImplementation(() => ({ messages: { create: mockCreate } }));
-  (MockAnthropic as any).__mockCreate = mockCreate;
+  const mockStream = jest.fn();
+  const MockAnthropic = jest.fn().mockImplementation(() => ({ messages: { stream: mockStream } }));
+  (MockAnthropic as any).__mockStream = mockStream;
   return { __esModule: true, default: MockAnthropic };
 });
 
 import Anthropic from '@anthropic-ai/sdk';
-import { extractRequirements } from '@/lib/anthropic';
+import { extractRequirements } from '@/lib/llm/anthropic';
 
-const mockCreate = (Anthropic as any).__mockCreate as jest.Mock;
+const mockStream = (Anthropic as any).__mockStream as jest.Mock;
 
 const mockPayload = {
   requirements: [{
@@ -25,12 +25,19 @@ const mockPayload = {
   summary: 'An auth requirements document.',
 };
 
-beforeEach(() => mockCreate.mockReset());
+function mockFinalMessage(payload: object) {
+  return {
+    finalMessage: jest.fn().mockResolvedValueOnce({
+      stop_reason: 'tool_use',
+      content: [{ type: 'tool_use', input: payload }],
+    }),
+  };
+}
+
+beforeEach(() => mockStream.mockReset());
 
 test('parses Claude response into ExtractionResult', async () => {
-  mockCreate.mockResolvedValueOnce({
-    content: [{ type: 'text', text: JSON.stringify(mockPayload) }],
-  });
+  mockStream.mockReturnValueOnce(mockFinalMessage(mockPayload));
   const result = await extractRequirements(
     'Users must log in.',
     { functional: true, nonFunctional: true, constraints: true },
@@ -43,14 +50,19 @@ test('parses Claude response into ExtractionResult', async () => {
 
 test('clamps confidence above 1 down to 1', async () => {
   const payload = { ...mockPayload, requirements: [{ ...mockPayload.requirements[0], confidence: 1.5 }] };
-  mockCreate.mockResolvedValueOnce({ content: [{ type: 'text', text: JSON.stringify(payload) }] });
+  mockStream.mockReturnValueOnce(mockFinalMessage(payload));
   const result = await extractRequirements('text', { functional: true, nonFunctional: false, constraints: false }, 'doc');
   expect(result.requirements[0].confidence).toBe(1);
 });
 
-test('throws on non-JSON response', async () => {
-  mockCreate.mockResolvedValueOnce({ content: [{ type: 'text', text: 'not json' }] });
+test('throws on max_tokens stop reason', async () => {
+  mockStream.mockReturnValueOnce({
+    finalMessage: jest.fn().mockResolvedValueOnce({
+      stop_reason: 'max_tokens',
+      content: [],
+    }),
+  });
   await expect(
     extractRequirements('text', { functional: true, nonFunctional: true, constraints: true }, 'doc')
-  ).rejects.toThrow('Failed to parse Claude response as JSON');
+  ).rejects.toThrow('too many requirements');
 });

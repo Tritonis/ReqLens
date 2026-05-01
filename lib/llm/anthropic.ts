@@ -1,31 +1,12 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { ExtractionOptions, ExtractionResult, ExtractedRequirement } from './types';
+import { ExtractionOptions, ExtractionResult, ExtractedRequirement } from '../types';
+import { SYSTEM_PROMPT, CHUNK_SIZE, chunkText, buildTypeFilter } from './prompt';
 
 let _client: Anthropic | null = null;
 function getClient(): Anthropic {
   if (!_client) _client = new Anthropic();
   return _client;
 }
-
-const SYSTEM_PROMPT = `You are a senior business analyst and requirements engineer. Your job is to extract, classify, and structure requirements from documents.
-
-For each requirement you find, you must output:
-- text: A clear, unambiguous requirement statement (rewrite in "shall/should/must" format if needed)
-- source_quote: The verbatim text from the document that led to this requirement (max 200 chars)
-- source_page: Page number if determinable from context clues, otherwise null
-- type: One of "functional" | "non-functional" | "constraint" | "ambiguous"
-- category: Subcategory — for functional: "data", "user-interface", "integration", "reporting", "workflow"; for non-functional: "performance", "security", "scalability", "usability", "availability"; for constraints: "budget", "timeline", "technology", "regulatory", "resource"
-- priority: "high" | "medium" | "low" — infer from language ("must", "critical", "required" = high; "should", "preferred" = medium; "may", "nice to have" = low)
-- confidence: Float 0.0–1.0 representing how certain you are this is a genuine requirement
-- is_ambiguous: true if the requirement is vague, contradictory, or missing measurable acceptance criteria
-- ambiguity_reason: If ambiguous, briefly explain why (max 100 chars)
-
-Rules:
-- Extract ALL requirements, even implicit ones buried in descriptive prose
-- Do NOT invent requirements not supported by the text
-- Split compound requirements into separate items
-- Normalise passive voice and vague language into clear "shall" statements
-- Confidence < 0.7 means mark as ambiguous`;
 
 const EXTRACTION_TOOL: Anthropic.Tool = {
   name: 'extract_requirements',
@@ -56,8 +37,6 @@ const EXTRACTION_TOOL: Anthropic.Tool = {
     required: ['requirements', 'summary'],
   },
 };
-
-const CHUNK_SIZE = 40_000; // chars — ~10K tokens of input per chunk
 
 async function callClaude(
   userContent: Anthropic.MessageParam['content']
@@ -94,13 +73,8 @@ export async function extractRequirements(
   documentName: string,
   pdfBuffer?: Buffer
 ): Promise<ExtractionResult> {
-  const typeFilter = [
-    options.functional && 'functional requirements',
-    options.nonFunctional && 'non-functional requirements',
-    options.constraints && 'constraints',
-  ].filter(Boolean).join(', ');
+  const typeFilter = buildTypeFilter(options);
 
-  // Scanned/image PDF — pass bytes directly, no chunking possible
   if (!text.trim() && pdfBuffer) {
     const content: Anthropic.MessageParam['content'] = [
       {
@@ -112,18 +86,12 @@ export async function extractRequirements(
     return callClaude(content);
   }
 
-  // Text document small enough for a single call
   if (text.length <= CHUNK_SIZE) {
     const prompt = `Document: "${documentName}"\n\nExtract the following: ${typeFilter}.\n\n--- DOCUMENT START ---\n${text}\n--- DOCUMENT END ---`;
     return callClaude(prompt);
   }
 
-  // Large text document — process in sequential chunks and merge
-  const chunks: string[] = [];
-  for (let i = 0; i < text.length; i += CHUNK_SIZE) {
-    chunks.push(text.slice(i, i + CHUNK_SIZE));
-  }
-
+  const chunks = chunkText(text);
   const allRequirements: ExtractedRequirement[] = [];
   let summary = '';
 
