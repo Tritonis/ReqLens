@@ -4,7 +4,7 @@ import { ExtractionOptions } from '@/lib/types';
 
 export type AnalysisStatus = 'idle' | 'uploading' | 'processing' | 'done' | 'error';
 
-export function useAnalysis() {
+export function useAnalysis(orgId?: string) {
   const [status, setStatus] = useState<AnalysisStatus>('idle');
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [reqCount, setReqCount] = useState(0);
@@ -19,7 +19,9 @@ export function useAnalysis() {
     formData.append('options', JSON.stringify(options));
     setStatus('processing');
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const headers: HeadersInit = {};
+      if (orgId) headers['x-org-id'] = orgId;
+      const res = await fetch('/api/upload', { method: 'POST', body: formData, headers });
       const data = await res.json();
       if (!res.ok) { setStatus('error'); setError(data.error ?? 'Analysis failed'); return null; }
       setDocumentId(data.documentId);
@@ -31,7 +33,7 @@ export function useAnalysis() {
       setError(err.message);
       return null;
     }
-  }, []);
+  }, [orgId]);
 
   const reset = useCallback(() => {
     setStatus('idle'); setDocumentId(null); setReqCount(0); setError(null);

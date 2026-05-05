@@ -9,8 +9,8 @@ const STATUS_STYLES: Record<string, string> = {
   pending: 'text-gray-500 bg-gray-50',
 };
 
-export function RecentDocuments() {
-  const { documents, loading } = useDocuments();
+export function RecentDocuments({ orgId }: { orgId?: string }) {
+  const { documents, loading } = useDocuments(orgId);
   if (loading) return <p className="text-sm text-gray-400">Loading recent documents…</p>;
   if (documents.length === 0) return null;
 

@@ -13,11 +13,13 @@ const TYPE_FILTERS: Array<{ value: RequirementType | 'all'; label: string }> = [
 interface Props {
   activeType: RequirementType | 'all';
   showAmbiguous: boolean;
+  assignedToMe: boolean;
   onTypeChange: (t: RequirementType | 'all') => void;
   onAmbiguousToggle: () => void;
+  onAssignedToMeToggle: () => void;
 }
 
-export function FilterBar({ activeType, showAmbiguous, onTypeChange, onAmbiguousToggle }: Props) {
+export function FilterBar({ activeType, showAmbiguous, assignedToMe, onTypeChange, onAmbiguousToggle, onAssignedToMeToggle }: Props) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {TYPE_FILTERS.map(({ value, label }) => (
@@ -25,6 +27,7 @@ export function FilterBar({ activeType, showAmbiguous, onTypeChange, onAmbiguous
       ))}
       <div className="w-px h-4 bg-gray-200 mx-1" />
       <FilterChip label="Needs review" active={showAmbiguous} onClick={onAmbiguousToggle} />
+      <FilterChip label="Assigned to me" active={assignedToMe} onClick={onAssignedToMeToggle} />
     </div>
   );
 }

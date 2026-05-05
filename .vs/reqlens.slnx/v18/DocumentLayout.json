@@ -1,0 +1,89 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\tpzap\\source\\repos\\reqlens\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\tpzap\\source\\repos\\reqlens\\app\\api\\invite\\[token]\\route.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\api\\invite\\[token]\\route.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\tpzap\\source\\repos\\reqlens\\app\\invite\\[token]\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\invite\\[token]\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\tpzap\\source\\repos\\reqlens\\lib\\auth\\permissions.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\auth\\permissions.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\tpzap\\source\\repos\\reqlens\\__tests__\\hooks\\useRequirements.test.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:__tests__\\hooks\\useRequirements.test.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\tpzap\\source\\repos\\reqlens\\app\\invite\\[token]\\page.tsx",
+              "RelativeDocumentMoniker": "app\\invite\\[token]\\page.tsx",
+              "ToolTip": "C:\\Users\\tpzap\\source\\repos\\reqlens\\app\\invite\\[token]\\page.tsx",
+              "RelativeToolTip": "app\\invite\\[token]\\page.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-04-30T17:19:44.048Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "route.ts",
+              "DocumentMoniker": "C:\\Users\\tpzap\\source\\repos\\reqlens\\app\\api\\invite\\[token]\\route.ts",
+              "RelativeDocumentMoniker": "app\\api\\invite\\[token]\\route.ts",
+              "ToolTip": "C:\\Users\\tpzap\\source\\repos\\reqlens\\app\\api\\invite\\[token]\\route.ts",
+              "RelativeToolTip": "app\\api\\invite\\[token]\\route.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-04-30T17:16:47.271Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "permissions.ts",
+              "DocumentMoniker": "C:\\Users\\tpzap\\source\\repos\\reqlens\\lib\\auth\\permissions.ts",
+              "RelativeDocumentMoniker": "lib\\auth\\permissions.ts",
+              "ToolTip": "C:\\Users\\tpzap\\source\\repos\\reqlens\\lib\\auth\\permissions.ts",
+              "RelativeToolTip": "lib\\auth\\permissions.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-04-30T17:15:24.651Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "useRequirements.test.ts",
+              "DocumentMoniker": "C:\\Users\\tpzap\\source\\repos\\reqlens\\__tests__\\hooks\\useRequirements.test.ts",
+              "RelativeDocumentMoniker": "__tests__\\hooks\\useRequirements.test.ts",
+              "ToolTip": "C:\\Users\\tpzap\\source\\repos\\reqlens\\__tests__\\hooks\\useRequirements.test.ts",
+              "RelativeToolTip": "__tests__\\hooks\\useRequirements.test.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-04-30T17:13:13.443Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

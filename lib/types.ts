@@ -57,3 +57,50 @@ export interface ExtractedRequirement {
   is_ambiguous: boolean;
   ambiguity_reason: string | null;
 }
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  owner_id: string;
+  created_at: string;
+}
+
+export interface OrgMember {
+  id: string;
+  org_id: string;
+  user_id: string;
+  email: string;
+  can_upload: boolean;
+  can_review: boolean;
+  can_export: boolean;
+  can_manage_users: boolean;
+  joined_at: string;
+}
+
+export interface OrgWithMember extends Organization {
+  member: Pick<OrgMember, 'can_upload' | 'can_review' | 'can_export' | 'can_manage_users'>;
+}
+
+export interface OrgInvitation {
+  id: string;
+  org_id: string;
+  email: string;
+  can_upload: boolean;
+  can_review: boolean;
+  can_export: boolean;
+  can_manage_users: boolean;
+  token: string;
+  expires_at: string;
+  accepted_at: string | null;
+  created_at: string;
+}
+
+export interface RequirementAssignment {
+  id: string;
+  requirement_id: string;
+  assignee_id: string;
+  email: string;
+  assigned_by: string;
+  assigned_at: string;
+}

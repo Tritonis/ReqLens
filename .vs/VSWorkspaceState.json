@@ -1,0 +1,13 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.claude",
+    "\\app",
+    "\\app\\invite",
+    "\\lib",
+    "\\lib\\auth",
+    "\\__tests__",
+    "\\__tests__\\hooks"
+  ],
+  "PreviewInSolutionExplorer": false
+}

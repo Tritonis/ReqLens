@@ -8,18 +8,20 @@ import { AnalysisProgress } from '@/components/analysis/AnalysisProgress';
 import { RecentDocuments } from '@/components/upload/RecentDocuments';
 import { Topbar } from '@/components/layout/Topbar';
 import { useAnalysis } from '@/hooks/useAnalysis';
+import { useOrgContext } from '@/lib/context/OrgContext';
 import type { ExtractionOptions as Options } from '@/lib/types';
 
 const DEFAULT_OPTIONS: Options = { functional: true, nonFunctional: true, constraints: true };
 
 export default function UploadPage() {
   const router = useRouter();
+  const { activeOrg } = useOrgContext();
   const [file, setFile] = useState<File | null>(null);
   const [pasteText, setPasteText] = useState('');
   const [options, setOptions] = useState<Options>(DEFAULT_OPTIONS);
-  const { status, reqCount, error, analyze } = useAnalysis();
+  const { status, reqCount, error, analyze } = useAnalysis(activeOrg?.id);
 
-  const canAnalyze = (file !== null || pasteText.trim().length > 0) && status === 'idle';
+  const canAnalyze = (file !== null || pasteText.trim().length > 0) && status === 'idle' && !!activeOrg;
 
   async function handleAnalyze() {
     const docId = await analyze(file, pasteText, options);
@@ -51,7 +53,7 @@ export default function UploadPage() {
           </button>
         </div>
         <div className="border-t border-gray-100 pt-6">
-          <RecentDocuments />
+          <RecentDocuments orgId={activeOrg?.id} />
         </div>
       </main>
     </div>
